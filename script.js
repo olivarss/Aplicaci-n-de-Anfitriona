@@ -7,28 +7,33 @@ const imgFondo = document.getElementById('img-fondo');
 const sonido = document.getElementById('sonidoPop');
 
 window.onload = function() {
-    // Cargar imagen de fondo
+    // 1. Cargar imagen
     const savedImg = localStorage.getItem('bar_fondo_img');
     if (savedImg) {
         imgFondo.src = savedImg;
         imgFondo.style.display = 'block';
+        imgFondo.onload = zoomAjustarPantalla; // Ajustar al cargar
     }
 
-    // Cargar mesas
+    // 2. Cargar mesas y sus estados
     const savedMesas = localStorage.getItem('bar_mesas_html');
     if (savedMesas) {
         contenedorMesas.innerHTML = savedMesas;
-        document.querySelectorAll('.mesa').forEach(configurarMesa);
+        document.querySelectorAll('.mesa').forEach(m => {
+            configurarMesa(m);
+            // Mostrar cronómetro si estaba ocupada
+            if(m.classList.contains('ocupada')) {
+                m.querySelector('.cronometro').style.display = 'block';
+            }
+        });
     }
     
     cambiarModo('operacion');
-    setTimeout(resetZoom, 500);
 };
 
 function cambiarModo(val) {
     modoActual = val;
     document.getElementById('herramientas-edicion').style.display = (val === 'operacion') ? 'none' : 'block';
-    
     document.querySelectorAll('.mesa').forEach(m => {
         m.classList.toggle('editando', val === 'edit-mesas');
         interact(m).unset();
@@ -42,25 +47,46 @@ function cargarImagenFondo(event) {
         imgFondo.src = reader.result;
         imgFondo.style.display = 'block';
         localStorage.setItem('bar_fondo_img', reader.result);
+        imgFondo.onload = zoomAjustarPantalla;
     }
     reader.readAsDataURL(event.target.files[0]);
+}
+
+function zoomAjustarPantalla() {
+    if (!imgFondo.complete || !imgFondo.src) return;
+    
+    const vW = window.innerWidth;
+    const vH = window.innerHeight * 0.9; // 90% del alto
+    const imgW = imgFondo.naturalWidth;
+    const imgH = imgFondo.naturalHeight;
+
+    const ratioW = vW / imgW;
+    const ratioH = vH / imgH;
+    
+    escala = Math.min(ratioW, ratioH) * 0.95; // 5% de margen
+    panX = (vW - imgW * escala) / 2;
+    panY = (vH - imgH * escala) / 2;
+    
+    actualizarVista();
 }
 
 function agregarMesa() {
     const m = document.createElement('div');
     m.className = 'mesa disponible editando';
-    m.style.left = (Math.abs(panX) + 100) / escala + "px";
-    m.style.top = (Math.abs(panY) + 100) / escala + "px";
+    // Poner en el centro visible
+    m.style.left = (Math.abs(panX) + 50) / escala + "px";
+    m.style.top = (Math.abs(panY) + 50) / escala + "px";
     m.dataset.inicio = "0";
     m.innerHTML = `<strong>#</strong><div class="cronometro" style="display:none">00:00</div>`;
     configurarMesa(m);
     contenedorMesas.appendChild(m);
+    guardarTodo();
 }
 
 function configurarMesa(m) {
     m.onpointerup = function(e) {
         if (modoActual === 'edit-mesas') {
-            const n = prompt("Número de mesa:", m.querySelector('strong').innerText);
+            const n = prompt("Nº de mesa:", m.querySelector('strong').innerText);
             if (n !== null) m.querySelector('strong').innerText = n;
         } else {
             if (m.classList.contains('disponible')) {
@@ -91,18 +117,17 @@ function guardarTodo() {
     localStorage.setItem('bar_mesas_html', contenedorMesas.innerHTML);
 }
 
-function borrarTodo() {
-    if(confirm("¿Borrar todo el diseño?")) {
-        localStorage.clear();
-        location.reload();
-    }
+function actualizarVista() { 
+    plano.style.transform = `translate(${panX}px, ${panY}px) scale(${escala})`; 
 }
 
-function resetZoom() { panX = 0; panY = 0; escala = 0.8; actualizarVista(); }
-function actualizarVista() { plano.style.transform = `translate(${panX}px, ${panY}px) scale(${escala})`; }
-
-// Navegación fluida del mapa
-interact('#viewport').draggable({
+// Navegación (Zoom con dedos y arrastre)
+interact('#viewport').gesturable({
+    onmove: function (e) {
+        escala *= (1 + e.ds);
+        actualizarVista();
+    }
+}).draggable({
     listeners: { move(e) {
         if (modoActual === 'edit-mesas' && e.target.classList.contains('mesa')) return;
         panX += e.dx; panY += e.dy;
@@ -110,10 +135,22 @@ interact('#viewport').draggable({
     }}
 });
 
-// Cronómetros
+function borrarTodo() {
+    if(confirm("Se borrará el mapa y las mesas. ¿Estás seguro?")) {
+        localStorage.clear();
+        location.reload();
+    }
+}
+
+// Reloj de mesas (No se detiene aunque refresques)
 setInterval(() => {
     document.querySelectorAll('.mesa.ocupada').forEach(m => {
-        const segs = Math.floor((Date.now() - parseInt(m.dataset.inicio)) / 1000);
-        m.querySelector('.cronometro').innerText = `${Math.floor(segs/60)}:${(segs%60).toString().padStart(2,'0')}`;
+        const inicio = parseInt(m.dataset.inicio);
+        if (inicio > 0) {
+            const segs = Math.floor((Date.now() - inicio) / 1000);
+            const mnts = Math.floor(segs / 60);
+            const rSegs = (segs % 60).toString().padStart(2, '0');
+            m.querySelector('.cronometro').innerText = `${mnts}:${rSegs}`;
+        }
     });
 }, 1000);
