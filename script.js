@@ -43,7 +43,9 @@ function agregarMesa() {
         m.className = 'mesa disponible editando';
         m.style.width = anchoMesaPreferido;
         m.style.height = altoMesaPreferido;
-        m.style.left = "150px"; m.style.top = "150px";
+        // Aparece cerca del centro visual
+        m.style.left = (Math.abs(parseFloat(plano.dataset.x)) || 100) / escala + 50 + "px";
+        m.style.top = (Math.abs(parseFloat(plano.dataset.y)) || 100) / escala + 50 + "px";
         m.dataset.capacidad = cap; m.dataset.inicio = "0";
         m.innerHTML = `<strong>#${num}</strong><span>${cap}p</span><div class="cronometro" style="display:none">00:00</div>`;
         configurarMesa(m);
@@ -53,7 +55,7 @@ function agregarMesa() {
 }
 
 function configurarMesa(mesa) {
-    mesa.onclick = () => {
+    mesa.onclick = (e) => {
         if (modoActual !== 'operacion') return;
         if (mesa.classList.contains('disponible')) {
             const r = prompt("¿Comensales?", mesa.dataset.capacidad);
@@ -61,7 +63,7 @@ function configurarMesa(mesa) {
                 mesa.classList.replace('disponible', 'ocupada');
                 mesa.dataset.inicio = Date.now();
                 mesa.querySelector('.cronometro').style.display = "block";
-                sonido.play();
+                if(sonido) { sonido.currentTime = 0; sonido.play().catch(()=>{}); }
             }
         } else if (confirm("¿Liberar mesa?")) {
             mesa.classList.remove('ocupada', 'alerta-tiempo');
@@ -86,7 +88,8 @@ function agregarZona() {
         const z = document.createElement('div');
         z.className = 'zona editando';
         z.style.width = "400px"; z.style.height = "400px";
-        z.style.left = "100px"; z.style.top = "100px";
+        z.style.left = (Math.abs(parseFloat(plano.dataset.x)) || 50) / escala + "px";
+        z.style.top = (Math.abs(parseFloat(plano.dataset.y)) || 50) / escala + "px";
         z.innerHTML = `<span>${nom}</span>`;
         configurarZona(z);
         plano.appendChild(z);
@@ -127,23 +130,35 @@ function resetZoom() {
 }
 
 function deshacer() { if (historial.length > 0) historial.pop().remove(); }
-function actTrans() { plano.style.transform = `translate(${plano.dataset.x}px, ${plano.dataset.y}px) scale(${escala})`; }
-function guardarDisposicion() { localStorage.setItem('mapaBarV10', plano.innerHTML); alert("¡Guardado!"); }
+
+function actTrans() { 
+    plano.style.transform = `translate(${plano.dataset.x}px, ${plano.dataset.y}px) scale(${escala})`; 
+}
+
+function guardarDisposicion() { 
+    localStorage.setItem('mapaBarV10', plano.innerHTML); 
+    alert("¡Mapa Guardado en este dispositivo!"); 
+}
 
 setInterval(() => {
     document.querySelectorAll('.mesa.ocupada').forEach(m => {
-        const segs = Math.floor((Date.now() - parseInt(m.dataset.inicio)) / 1000);
-        if (segs > 0) {
-            m.querySelector('.cronometro').innerText = `${Math.floor(segs/60)}:${(segs%60).toString().padStart(2,'0')}`;
+        const inicio = parseInt(m.dataset.inicio);
+        if (inicio > 0) {
+            const segs = Math.floor((Date.now() - inicio) / 1000);
+            const min = Math.floor(segs / 60);
+            const s = (segs % 60).toString().padStart(2, '0');
+            m.querySelector('.cronometro').innerText = `${min}:${s}`;
             if (segs >= 5400) m.classList.add('alerta-tiempo');
         }
     });
 }, 1000);
 
-interact('#viewport').gesturable({ onmove: e => { escala *= (1+e.ds); actTrans(); } })
-.draggable({ listeners: { move(e) {
-    if (modoActual !== 'operacion' && (e.target.classList.contains('mesa') || e.target.classList.contains('zona'))) return;
-    plano.dataset.x = (parseFloat(plano.dataset.x) || 0) + e.dx;
-    plano.dataset.y = (parseFloat(plano.dataset.y) || 0) + e.dy;
-    actTrans();
-}}});
+interact('#viewport').gesturable({ 
+    onmove: e => { escala *= (1+e.ds); actTrans(); } 
+}).draggable({ 
+    listeners: { move(e) {
+        // Si estamos moviendo una mesa o zona, no movemos el fondo
+        if (modoActual !== 'operacion' && (e.target.classList.contains('mesa') || e.target.classList.contains('zona'))) return;
+        
+        const x = (parseFloat(plano.dataset.x) || 0) + e.dx;
+        const y = (parseFloat(plano.dataset.y) ||
