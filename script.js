@@ -7,7 +7,7 @@ const plano = document.getElementById('plano-bar');
 const sonido = document.getElementById('sonidoPop');
 
 window.onload = function() {
-    const savedData = localStorage.getItem('mapaBar_vFinal_v2');
+    const savedData = localStorage.getItem('mapaBar_vFinal_v3');
     if (savedData) {
         plano.innerHTML = savedData;
         document.querySelectorAll('.mesa').forEach(configurarMesa);
@@ -38,13 +38,12 @@ function cambiarModo(val) {
 }
 
 function agregarZona() {
-    const nom = prompt("Nombre del área (ej: Terraza):");
+    const nom = prompt("Nombre del área:");
     if (!nom) return;
     const z = document.createElement('div');
     z.className = 'zona editando';
     z.style.width = "300px"; z.style.height = "300px";
-    z.style.left = (Math.abs(panX) + 50) / escala + "px";
-    z.style.top = (Math.abs(panY) + 50) / escala + "px";
+    z.style.left = "100px"; z.style.top = "100px";
     z.innerHTML = `<span>${nom}</span>`;
     configurarZona(z);
     plano.appendChild(z);
@@ -53,8 +52,8 @@ function agregarZona() {
 }
 
 function configurarZona(z) {
-    z.onclick = function() {
-        if (modoActual !== 'edit-mesas') return;
+    z.onclick = function(e) {
+        if (modoActual !== 'edit-mesas' || e.target !== z) return;
         const cant = prompt("¿Cuántas mesas para esta área?", "6");
         if (!cant || isNaN(cant)) return;
         
@@ -95,8 +94,8 @@ function configurarZona(z) {
 }
 
 function configurarMesa(m) {
-    m.onclick = function(e) {
-        e.stopPropagation();
+    // Usamos pointerup para asegurar que el clic funcione después de tocar
+    m.onpointerup = function(e) {
         if (modoActual === 'edit-mesas') {
             const nCap = prompt("¿Capacidad?", m.dataset.capacidad);
             if (nCap) { m.dataset.capacidad = nCap; m.querySelector('span').innerText = nCap + "p"; }
@@ -130,7 +129,7 @@ function configurarMesa(m) {
     });
 }
 
-function guardarDisposicion() { localStorage.setItem('mapaBar_vFinal_v2', plano.innerHTML); }
+function guardarDisposicion() { localStorage.setItem('mapaBar_vFinal_v3', plano.innerHTML); }
 function deshacer() { if (historial.length > 0) { historial.pop().remove(); guardarDisposicion(); } }
 function resetZoom() { panX = 0; panY = 0; escala = 0.8; actualizarVista(); }
 function actualizarVista() { plano.style.transform = `translate(${panX}px, ${panY}px) scale(${escala})`; }
@@ -142,6 +141,7 @@ interact('#viewport').gesturable({
     }
 }).draggable({
     listeners: { move(e) {
+        // Solo mover mapa si no estamos arrastrando una mesa/zona en edición
         if (modoActual !== 'operacion' && (e.target.classList.contains('mesa') || e.target.classList.contains('zona'))) return;
         panX += e.dx; panY += e.dy;
         actualizarVista();
@@ -149,16 +149,17 @@ interact('#viewport').gesturable({
 });
 
 function exportarMapa() {
-    const datos = localStorage.getItem('mapaBar_vFinal_v2');
+    const datos = localStorage.getItem('mapaBar_vFinal_v3');
     const codigo = btoa(unescape(encodeURIComponent(datos)));
-    navigator.clipboard.writeText(codigo).then(() => alert("Copiado al portapapeles."));
+    alert("Código copiado. Guárdalo en tus notas.");
+    console.log(codigo);
 }
 
 function importarMapa() {
     const codigo = prompt("Pega el código:");
     if (codigo) {
         const deco = decodeURIComponent(escape(atob(codigo)));
-        localStorage.setItem('mapaBar_vFinal_v2', deco);
+        localStorage.setItem('mapaBar_vFinal_v3', deco);
         location.reload();
     }
 }
