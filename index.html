@@ -1,19 +1,30 @@
-<div id="controles">
-    <div id="seccion-edicion">
-        <button onclick="agregarMesa()" class="btn-crear">+ Mesa</button>
-        <button onclick="agregarZona()" class="btn-zona">+ Área/Salón</button>
-        <button onclick="guardarDisposicion()" class="btn-guardar">💾 Guardar Mapa</button>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Anfitriona Bar Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+</head>
+<body>
+    <div id="controles">
+        <div id="seccion-edicion">
+            <button onclick="agregarMesa()" class="btn-crear">+ Mesa</button>
+            <button onclick="agregarZona()" class="btn-zona">+ Área/Salón</button>
+            <button onclick="guardarDisposicion()" class="btn-guardar">💾 Guardar Mapa</button>
+        </div>
+        <div class="opciones-vista">
+            <label><strong>Modo Edición</strong></label>
+            <input type="checkbox" id="checkModo" onchange="alternarModo(this.checked)">
+            <button onclick="resetZoom()" style="margin-left:10px">🏠 Vista General</button>
+        </div>
+        <p id="feedback" style="font-size: 11px; color: #555; margin-top: 5px;"></p>
     </div>
-    <div class="opciones-vista">
-        <label><strong>Modo Edición</strong></label>
-        <input type="checkbox" id="checkModo" onchange="alternarModo(this.checked)">
-        <button onclick="resetZoom()" style="margin-left:10px">🏠 Vista General</button>
+    <div id="viewport">
+        <div id="plano-bar" data-x="0" data-y="0"></div>
     </div>
-    <p id="feedback" style="font-size: 11px; color: #555; margin: 5px 0 0;"></p>
-</div>
-
-<div id="viewport">
-    <div id="plano-bar" data-x="0" data-y="0"></div>
-</div>
-
-<audio id="sonidoPop" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
+    <audio id="sonidoPop" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
+    <script src="script.js"></script>
+</body>
+</html>
