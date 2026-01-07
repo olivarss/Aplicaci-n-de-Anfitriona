@@ -4,36 +4,100 @@ let historial = [];
 let anchoMesaPreferido = "60px";
 let altoMesaPreferido = "60px";
 
+// Variables para el movimiento suave
+let panX = 0;
+let panY = 0;
+
 const plano = document.getElementById('plano-bar');
 const sonido = document.getElementById('sonidoPop');
+const viewport = document.getElementById('viewport');
 
-// CARGAR AL INICIAR
 window.onload = function() {
     const savedData = localStorage.getItem('mapaBarV11');
     if (savedData) {
         plano.innerHTML = savedData;
-        // Re-activar funciones en objetos cargados
         document.querySelectorAll('.mesa').forEach(configurarMesa);
         document.querySelectorAll('.zona').forEach(configurarZona);
     }
     cambiarModo('operacion');
+    // Centrado inicial
     setTimeout(resetZoom, 500);
 };
 
+// --- ZOOM PROFESIONAL (Pinch-to-zoom) ---
+interact('#viewport').gesturable({
+    onmove: function (event) {
+        const factorSensibilidad = 0.5; // Ajusta para más o menos velocidad
+        const nuevaEscala = escala * (1 + event.ds * factorSensibilidad);
+        
+        // Limites de zoom
+        if (nuevaEscala > 0.15 && nuevaEscala < 4) {
+            // Este es el secreto: ajustar el movimiento mientras haces zoom
+            // para que se sienta que haces zoom hacia tus dedos
+            panX -= (event.clientX0 - panX) * (nuevaEscala / escala - 1);
+            panY -= (event.clientY0 - panY) * (nuevaEscala / escala - 1);
+            
+            escala = nuevaEscala;
+            actualizarVista();
+        }
+    }
+}).draggable({
+    inertia: true,
+    listeners: {
+        move(event) {
+            // Bloqueo de arrastre si estamos moviendo un objeto en edición
+            if (modoActual !== 'operacion' && (event.target.classList.contains('mesa') || event.target.classList.contains('zona'))) return;
+            
+            panX += event.dx;
+            panY += event.dy;
+            actualizarVista();
+        }
+    }
+});
+
+function actualizarVista() {
+    // Aplicamos la transformación usando translate y scale de forma limpia
+    plano.style.transform = `translate(${panX}px, ${panY}px) scale(${escala})`;
+}
+
+function resetZoom() {
+    // Centra el mapa según las áreas dibujadas
+    const zonas = document.querySelectorAll('.zona');
+    if (zonas.length === 0) {
+        escala = 1; panX = 20; panY = 20;
+    } else {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        zonas.forEach(z => {
+            const x = parseFloat(z.style.left), y = parseFloat(z.style.top);
+            const w = parseFloat(z.style.width), h = parseFloat(z.style.height);
+            if (x < minX) minX = x; if (y < minY) minY = y;
+            if (x + w > maxX) maxX = x + w; if (y + h > maxY) maxY = y + h;
+        });
+        
+        const padding = 40;
+        const availableW = window.innerWidth - (padding * 2);
+        const availableH = (window.innerHeight * 0.85) - (padding * 2);
+        
+        escala = Math.min(availableW / (maxX - minX), availableH / (maxY - minY), 2);
+        panX = -minX * escala + padding;
+        panY = -minY * escala + padding;
+    }
+    actualizarVista();
+}
+
+// --- LOGICA DE OBJETOS (Mantener igual) ---
+
 function cambiarModo(val) {
     modoActual = val;
-    // Mostrar u ocultar botones según el modo
     document.getElementById('btn-zona').style.display = (val === 'edit-zonas') ? 'inline-block' : 'none';
     document.getElementById('btn-mesa').style.display = (val === 'edit-mesas') ? 'inline-block' : 'none';
 
-    // Bloquear o desbloquear mesas
     document.querySelectorAll('.mesa').forEach(m => {
         const isEditing = (val === 'edit-mesas');
         m.classList.toggle('editando', isEditing);
         interact(m).draggable(isEditing).resizable(isEditing);
     });
 
-    // Bloquear o desbloquear zonas
     document.querySelectorAll('.zona').forEach(z => {
         const isEditing = (val === 'edit-zonas');
         z.classList.toggle('editando', isEditing);
@@ -49,7 +113,9 @@ function agregarMesa() {
         m.className = 'mesa disponible editando';
         m.style.width = anchoMesaPreferido;
         m.style.height = altoMesaPreferido;
-        m.style.left = "150px"; m.style.top = "150px";
+        // Aparece en el centro relativo de la pantalla
+        m.style.left = (window.innerWidth / 2 - panX) / escala + "px";
+        m.style.top = (window.innerHeight / 2 - panY) / escala + "px";
         m.dataset.capacidad = cap; m.dataset.inicio = "0";
         m.innerHTML = `<strong>#${num}</strong><span>${cap}p</span><div class="cronometro" style="display:none">00:00</div>`;
         configurarMesa(m);
@@ -62,14 +128,14 @@ function configurarMesa(mesa) {
     mesa.onclick = function() {
         if (modoActual !== 'operacion') return;
         if (mesa.classList.contains('disponible')) {
-            const r = prompt("¿Cuántos entran?", mesa.dataset.capacidad);
+            const r = prompt("¿Cuántos?", mesa.dataset.capacidad);
             if (r) {
                 mesa.classList.replace('disponible', 'ocupada');
                 mesa.dataset.inicio = Date.now();
                 mesa.querySelector('.cronometro').style.display = "block";
                 if(sonido) { sonido.currentTime = 0; sonido.play().catch(()=>{}); }
             }
-        } else if (confirm("¿Liberar mesa?")) {
+        } else if (confirm("¿Liberar?")) {
             mesa.classList.remove('ocupada', 'alerta-tiempo');
             mesa.classList.add('disponible');
             mesa.dataset.inicio = "0";
@@ -94,12 +160,13 @@ function configurarMesa(mesa) {
 }
 
 function agregarZona() {
-    const nom = prompt("Nombre zona:");
+    const nom = prompt("Nombre:");
     if (nom) {
         const z = document.createElement('div');
         z.className = 'zona editando';
-        z.style.width = "400px"; z.style.height = "400px";
-        z.style.left = "100px"; z.style.top = "100px";
+        z.style.width = "300px"; z.style.height = "300px";
+        z.style.left = (window.innerWidth / 2 - panX) / escala + "px";
+        z.style.top = (window.innerHeight / 2 - panY) / escala + "px";
         z.innerHTML = `<span>${nom}</span>`;
         configurarZona(z);
         plano.appendChild(z);
@@ -123,16 +190,12 @@ function configurarZona(z) {
 }
 
 function guardarDisposicion() {
-    // ESTA ES LA CLAVE: Guardamos todo el HTML dentro de la memoria del celular
     localStorage.setItem('mapaBarV11', plano.innerHTML);
-    alert("✅ ¡GUARDADO! Ahora puedes refrescar sin miedo.");
+    alert("✅ Mapa Guardado");
 }
 
 function deshacer() { if (historial.length > 0) historial.pop().remove(); }
-function actTrans() { plano.style.transform = `translate(${plano.dataset.x || 0}px, ${plano.dataset.y || 0}px) scale(${escala})`; }
-function resetZoom() { escala = 1; plano.dataset.x = 0; plano.dataset.y = 0; actTrans(); }
 
-// CRONOMETROS
 setInterval(() => {
     document.querySelectorAll('.mesa.ocupada').forEach(m => {
         const segs = Math.floor((Date.now() - parseInt(m.dataset.inicio)) / 1000);
@@ -142,16 +205,3 @@ setInterval(() => {
         if (segs >= 5400) m.classList.add('alerta-tiempo');
     });
 }, 1000);
-
-// NAVEGACIÓN
-interact('#viewport').gesturable({
-    onmove: e => { escala *= (1+e.ds); actTrans(); }
-}).draggable({
-    listeners: { move(e) {
-        if (modoActual !== 'operacion' && (e.target.classList.contains('mesa') || e.target.classList.contains('zona'))) return;
-        const x = (parseFloat(plano.dataset.x) || 0) + e.dx;
-        const y = (parseFloat(plano.dataset.y) || 0) + e.dy;
-        plano.dataset.x = x; plano.dataset.y = y;
-        actTrans();
-    }}
-});
