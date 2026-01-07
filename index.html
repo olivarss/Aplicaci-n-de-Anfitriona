@@ -11,17 +11,17 @@
     <div id="controles">
         <div id="fila-superior">
             <select id="selectorModo" onchange="cambiarModo(this.value)">
-                <option value="operacion">🛡️ MODO ATENCIÓN</option>
-                <option value="edit-mesas">🪑 MODO EDICIÓN (MESAS)</option>
+                <option value="operacion">🛡️ ATENCIÓN</option>
+                <option value="edit-mesas">🪑 CONFIGURAR</option>
             </select>
-            <button onclick="resetZoom()">🏠</button>
-            <button onclick="guardarTodo()" style="background:#2980b9; color:white;">💾 GUARDAR</button>
+            <button onclick="zoomAjustarPantalla()">🏠</button>
+            <button onclick="guardarTodo()" style="background:#2980b9; color:white;">💾</button>
         </div>
         <div id="herramientas-edicion" style="display:none; margin-top:8px;">
-            <button onclick="agregarMesa()">+ Nueva Mesa</button>
-            <button onclick="document.getElementById('inputFondo').click()" style="background:#e67e22; color:white;">🖼️ Cargar Plano</button>
+            <button onclick="agregarMesa()">+ Mesa</button>
+            <button onclick="document.getElementById('inputFondo').click()" style="background:#e67e22; color:white;">🖼️ Cargar Mapa</button>
             <input type="file" id="inputFondo" style="display:none" accept="image/*" onchange="cargarImagenFondo(event)">
-            <button onclick="borrarTodo()" style="background:#c0392b; color:white;">🗑️ Reset</button>
+            <button onclick="borrarTodo()" style="background:#c0392b; color:white;">🗑️ Limpiar</button>
         </div>
     </div>
 
