@@ -9,19 +9,18 @@
 </head>
 <body>
     <div id="controles">
-        <div id="menu-superior">
-            <select id="selectorModo" onchange="cambiarModo(this.value)">
-                <option value="operacion">🛡️ Modo Operación (Bloqueado)</option>
-                <option value="edit-zonas">🏗️ Paso 1: Editar Áreas</option>
-                <option value="edit-mesas">🪑 Paso 2: Editar Mesas</option>
-            </select>
-            <button onclick="deshacer()" class="btn-deshacer">↩️ Retroceder</button>
+        <select id="selectorModo" onchange="cambiarModo(this.value)">
+            <option value="operacion">🛡️ MODO OPERACIÓN</option>
+            <option value="edit-zonas">🏗️ PASO 1: ÁREAS</option>
+            <option value="edit-mesas">🪑 PASO 2: MESAS</option>
+        </select>
+        
+        <div id="herramientas">
+            <button onclick="agregarZona()" id="btn-zona" style="display:none">+ Área</button>
+            <button onclick="agregarMesa()" id="btn-mesa" style="display:none">+ Mesa</button>
+            <button onclick="deshacer()">↩️</button>
+            <button onclick="resetZoom()">🏠</button>
             <button onclick="guardarDisposicion()" class="btn-guardar">💾 Guardar</button>
-        </div>
-        <div id="herramientas-edicion" style="display:none; margin-top:10px;">
-            <button onclick="agregarZona()" id="btn-nueva-zona">+ Nueva Área</button>
-            <button onclick="agregarMesa()" id="btn-nueva-mesa">+ Nueva Mesa</button>
-            <button onclick="resetZoom()">🏠 Vista General</button>
         </div>
     </div>
 
