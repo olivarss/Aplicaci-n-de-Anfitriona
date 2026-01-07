@@ -9,21 +9,26 @@
 </head>
 <body>
     <div id="controles">
-        <div id="seccion-edicion">
-            <button onclick="agregarMesa()" class="btn-crear">+ Mesa</button>
-            <button onclick="agregarZona()" class="btn-zona">+ Área/Salón</button>
-            <button onclick="guardarDisposicion()" class="btn-guardar">💾 Guardar Mapa</button>
+        <div id="menu-superior">
+            <select id="selectorModo" onchange="cambiarModo(this.value)">
+                <option value="operacion">🛡️ Modo Operación (Bloqueado)</option>
+                <option value="edit-zonas">🏗️ Paso 1: Editar Áreas</option>
+                <option value="edit-mesas">🪑 Paso 2: Editar Mesas</option>
+            </select>
+            <button onclick="deshacer()" class="btn-deshacer">↩️ Retroceder</button>
+            <button onclick="guardarDisposicion()" class="btn-guardar">💾 Guardar</button>
         </div>
-        <div class="opciones-vista">
-            <label><strong>Modo Edición</strong></label>
-            <input type="checkbox" id="checkModo" onchange="alternarModo(this.checked)">
-            <button onclick="resetZoom()" style="margin-left:10px">🏠 Vista General</button>
+        <div id="herramientas-edicion" style="display:none; margin-top:10px;">
+            <button onclick="agregarZona()" id="btn-nueva-zona">+ Nueva Área</button>
+            <button onclick="agregarMesa()" id="btn-nueva-mesa">+ Nueva Mesa</button>
+            <button onclick="resetZoom()">🏠 Vista General</button>
         </div>
-        <p id="feedback" style="font-size: 11px; color: #555; margin-top: 5px;"></p>
     </div>
+
     <div id="viewport">
         <div id="plano-bar" data-x="0" data-y="0"></div>
     </div>
+
     <audio id="sonidoPop" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
     <script src="script.js"></script>
 </body>
