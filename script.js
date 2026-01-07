@@ -7,7 +7,8 @@ const plano = document.getElementById('plano-bar');
 const sonido = document.getElementById('sonidoPop');
 
 window.onload = function() {
-    const savedData = localStorage.getItem('mapaBar_FINAL_V101');
+    // Usamos una versión nueva de la base de datos para limpiar conflictos previos
+    const savedData = localStorage.getItem('mapaBar_FINAL_V102');
     if (savedData) {
         plano.innerHTML = savedData;
         document.querySelectorAll('.mesa').forEach(configurarMesa);
@@ -36,7 +37,7 @@ function cambiarModo(val) {
 }
 
 function agregarZona() {
-    const nom = prompt("Nombre del área:");
+    const nom = prompt("Nombre del área (ej: Terraza):");
     if (!nom) return;
     const z = document.createElement('div');
     z.className = 'zona editando';
@@ -52,17 +53,22 @@ function agregarZona() {
 
 function configurarZona(z) {
     z.onclick = function(e) {
-        if (modoActual !== 'edit-mesas') return;
+        // Solo actuar si estamos en PASO 2 y tocamos el fondo del área
+        if (modoActual !== 'edit-mesas' || e.target !== z) return;
         e.stopPropagation();
         
-        const cant = prompt(`¿Cuántas mesas para ${z.innerText}?`, "6");
-        if (!cant || isNaN(cant)) return;
+        const confirmar = confirm("¿Deseas generar un grupo de mesas nuevas en esta área?");
+        if (!confirmar) return;
 
-        // --- CÁLCULO DE REJILLA CORREGIDO ---
+        const cant = prompt("¿Cuántas mesas quieres crear?", "6");
+        if (!cant || isNaN(cant)) return;
+        
+        const capEstandar = prompt("¿Capacidad para estas mesas?", "4");
+
         const startX = parseFloat(z.style.left);
         const startY = parseFloat(z.style.top);
         const zW = parseFloat(z.style.width);
-        const margen = 15; // Espacio entre mesas
+        const margen = 15;
         
         let col = 0, fila = 0;
 
@@ -72,31 +78,29 @@ function configurarZona(z) {
             m.style.width = anchoMesaPref + "px"; 
             m.style.height = altoMesaPref + "px";
             
-            // Calculamos la posición relativa al área
             let posXRelativa = margen + (col * (anchoMesaPref + margen));
             let posYRelativa = 45 + (fila * (altoMesaPref + margen));
 
-            // Si la mesa se sale del ancho del área, saltamos a la siguiente fila
             if (posXRelativa + anchoMesaPref > zW - margen) {
-                col = 0;
-                fila++;
+                col = 0; fila++;
                 posXRelativa = margen;
                 posYRelativa = 45 + (fila * (altoMesaPref + margen));
             }
 
-            // Posición final en el plano
             m.style.left = (startX + posXRelativa) + "px";
             m.style.top = (startY + posYRelativa) + "px";
             
-            m.dataset.capacidad = "4"; 
+            m.dataset.capacidad = capEstandar || "4"; 
             m.dataset.inicio = "0";
-            m.innerHTML = `<strong>#${i+1}</strong><span>4p</span><div class="cronometro" style="display:none">00:00</div>`;
+            // No usamos prompt aquí para que sea automático
+            m.innerHTML = `<strong>#${i+1}</strong><span>${m.dataset.capacidad}p</span><div class="cronometro" style="display:none">00:00</div>`;
             
             configurarMesa(m);
             plano.appendChild(m);
             col++;
         }
         guardarDisposicion();
+        alert("Mesas creadas. Ahora puedes moverlas individualmente.");
     };
 
     interact(z).draggable({
@@ -116,25 +120,30 @@ function configurarZona(z) {
 }
 
 function configurarMesa(m) {
-    // Evento táctil prioritario
     m.onpointerup = function(e) {
         e.stopPropagation();
+        
+        // MODO EDICIÓN DE MESAS: Solo pregunta si tocas la mesa directamente
         if (modoActual === 'edit-mesas') {
-            const nNombre = prompt("Nombre/Nº:", m.querySelector('strong').innerText.replace('#',''));
-            const nCap = prompt("Capacidad:", m.dataset.capacidad);
+            const nNombre = prompt("Cambiar Número/Nombre:", m.querySelector('strong').innerText.replace('#',''));
+            const nCap = prompt("Cambiar Capacidad:", m.dataset.capacidad);
             if (nNombre !== null) m.querySelector('strong').innerText = "#" + nNombre;
             if (nCap !== null) { m.dataset.capacidad = nCap; m.querySelector('span').innerText = nCap + "p"; }
             guardarDisposicion();
-        } else if (modoActual === 'operacion') {
+            return;
+        } 
+        
+        // MODO ATENCIÓN: Abrir/Cerrar mesa
+        if (modoActual === 'operacion') {
             if (m.classList.contains('disponible')) {
-                const r = prompt("¿Comensales?", m.dataset.capacidad);
+                const r = prompt("¿Cuántos comensales entran?", m.dataset.capacidad);
                 if (r) {
                     m.classList.replace('disponible', 'ocupada');
                     m.dataset.inicio = Date.now();
                     m.querySelector('.cronometro').style.display = "block";
                     if(sonido) sonido.play().catch(()=>{});
                 }
-            } else if (confirm("¿Liberar mesa?")) {
+            } else if (confirm("¿Deseas liberar esta mesa?")) {
                 m.classList.remove('ocupada', 'alerta-tiempo');
                 m.classList.add('disponible');
                 m.dataset.inicio = "0";
@@ -162,7 +171,7 @@ function configurarMesa(m) {
     });
 }
 
-function guardarDisposicion() { localStorage.setItem('mapaBar_FINAL_V101', plano.innerHTML); }
+function guardarDisposicion() { localStorage.setItem('mapaBar_FINAL_V102', plano.innerHTML); }
 function deshacer() { if (plano.lastChild) { plano.removeChild(plano.lastChild); guardarDisposicion(); } }
 function resetZoom() { panX = 10; panY = 10; escala = 0.8; actualizarVista(); }
 function actualizarVista() { plano.style.transform = `translate(${panX}px, ${panY}px) scale(${escala})`; }
@@ -181,16 +190,16 @@ interact('#viewport').gesturable({
 });
 
 function exportarMapa() {
-    const datos = localStorage.getItem('mapaBar_FINAL_V101');
+    const datos = localStorage.getItem('mapaBar_FINAL_V102');
     const codigo = btoa(unescape(encodeURIComponent(datos)));
-    prompt("Copia este código:", codigo);
+    prompt("Copia este código de respaldo:", codigo);
 }
 
 function importarMapa() {
-    const codigo = prompt("Pega el código:");
+    const codigo = prompt("Pega el código de respaldo:");
     if (codigo) {
         const deco = decodeURIComponent(escape(atob(codigo)));
-        localStorage.setItem('mapaBar_FINAL_V101', deco);
+        localStorage.setItem('mapaBar_FINAL_V102', deco);
         location.reload();
     }
 }
