@@ -1,26 +1,19 @@
 body { font-family: sans-serif; margin: 0; background-color: #000; overflow: hidden; touch-action: none; }
 #controles { padding: 10px; background: #fff; text-align: center; z-index: 1000; position: relative; border-bottom: 2px solid #444; }
 #fila-superior { display: flex; justify-content: center; gap: 5px; }
-#viewport { width: 100vw; height: 90vh; overflow: hidden; background-color: #000; position: relative; }
-#plano-bar { width: 4000px; height: 4000px; background-color: #0a0a0a; position: absolute; transform-origin: 0 0; background-image: radial-gradient(#222 1px, transparent 1px); background-size: 30px 30px; }
+#viewport { width: 100vw; height: 90vh; overflow: hidden; background-color: #1a1a1a; position: relative; }
+#plano-bar { width: 5000px; height: 5000px; position: absolute; transform-origin: 0 0; }
 
 .mesa {
     position: absolute; width: 60px; height: 60px; background-color: #27ae60;
     border-radius: 8px; display: flex; flex-direction: column; align-items: center; 
-    justify-content: center; color: white; font-size: 10px; font-weight: bold; 
-    z-index: 500; border: 2px solid #1e8449; touch-action: none; pointer-events: auto;
+    justify-content: center; color: white; font-size: 11px; font-weight: bold; 
+    z-index: 500; border: 2px solid #1e8449; touch-action: none;
 }
 
-.zona {
-    position: absolute; width: 350px; height: 350px; background-color: rgba(255, 255, 255, 0.05);
-    border: 2px dashed #444; border-radius: 12px; display: flex; align-items: flex-start; 
-    justify-content: center; padding-top: 10px; color: #666; font-weight: bold; z-index: 10;
-}
-
-.editando { border: 2px solid #3498db !important; box-shadow: 0 0 10px rgba(52, 152, 219, 0.5); color: #3498db !important; }
+.editando { border: 2px solid #3498db !important; box-shadow: 0 0 15px #3498db; }
 .ocupada { background-color: #c0392b !important; border-color: #922b21 !important; }
-.alerta-tiempo { background-color: #f39c12 !important; animation: parpadeo 2s infinite; }
-@keyframes parpadeo { 50% { opacity: 0.5; } }
 
-.cronometro { font-size: 10px; background: rgba(0,0,0,0.5); padding: 1px 3px; border-radius: 3px; margin-top: 2px; }
-button { padding: 8px; border-radius: 5px; font-weight: bold; border: 1px solid #ccc; background: #f0f0f0; }
+.cronometro { font-size: 10px; background: rgba(0,0,0,0.6); padding: 2px 4px; border-radius: 3px; margin-top: 2px; }
+button { padding: 8px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #ccc; cursor: pointer; }
+#selectorModo { padding: 8px; border-radius: 6px; font-weight: bold; }
