@@ -1,36 +1,26 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Anfitriona Bar Pro</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
-</head>
-<body>
-    <div id="controles">
-        <div id="menu-superior">
-            <select id="selectorModo" onchange="cambiarModo(this.value)">
-                <option value="operacion">🛡️ MODO OPERACIÓN</option>
-                <option value="edit-zonas">🏗️ PASO 1: ÁREAS</option>
-                <option value="edit-mesas">🪑 PASO 2: MESAS</option>
-            </select>
-            <button onclick="deshacer()">↩️</button>
-            <button onclick="resetZoom()">🏠</button>
-            <button onclick="guardarDisposicion()" class="btn-guardar">💾 Guardar</button>
-        </div>
-        <div id="herramientas-edicion" style="display:none; margin-top:10px;">
-            <button onclick="agregarZona()" id="btn-nueva-zona" class="btn-accion">+ Área</button>
-            <button onclick="agregarMesa()" id="btn-nueva-mesa" class="btn-accion">+ Mesa</button>
-        </div>
-        <p id="feedback" style="font-size: 11px; color: #666; margin: 5px 0 0;"></p>
-    </div>
+body { font-family: sans-serif; margin: 0; background-color: #000; overflow: hidden; touch-action: none; }
+#controles { padding: 10px; background: white; text-align: center; z-index: 100; position: relative; border-bottom: 2px solid #333; }
+#herramientas { margin-top: 8px; display: flex; justify-content: center; gap: 5px; }
+#viewport { width: 100vw; height: 90vh; overflow: hidden; background-color: #000; cursor: grab; }
+#plano-bar { width: 4000px; height: 4000px; background-color: #111; position: relative; transform-origin: 0 0; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 40px 40px; }
 
-    <div id="viewport">
-        <div id="plano-bar" data-x="0" data-y="0"></div>
-    </div>
+.mesa {
+    position: absolute; width: 60px; height: 60px; background-color: #27ae60;
+    border-radius: 8px; display: flex; flex-direction: column; align-items: center; 
+    justify-content: center; color: white; font-size: 10px; font-weight: bold; 
+    z-index: 20; border: 2px solid #1e8449; touch-action: none;
+}
 
-    <audio id="sonidoPop" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
-    <script src="script.js"></script>
-</body>
-</html>
+.zona {
+    position: absolute; width: 300px; height: 300px; background-color: rgba(255, 255, 255, 0.1);
+    border: 2px dashed #555; border-radius: 12px; display: flex; align-items: flex-start; 
+    justify-content: center; padding-top: 10px; color: #aaa; font-weight: bold; z-index: 5;
+}
+
+.editando { border: 2px solid #3498db !important; box-shadow: 0 0 15px rgba(52, 152, 219, 0.5); }
+.ocupada { background-color: #c0392b !important; border-color: #922b21 !important; }
+.alerta-tiempo { background-color: #f39c12 !important; animation: parpadeo 2s infinite; }
+@keyframes parpadeo { 50% { opacity: 0.6; } }
+
+.cronometro { font-size: 10px; background: rgba(0,0,0,0.5); padding: 2px; border-radius: 3px; }
+button { padding: 8px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #ccc; cursor: pointer; }
