@@ -7,7 +7,7 @@ const plano = document.getElementById('plano-bar');
 const sonido = document.getElementById('sonidoPop');
 
 window.onload = function() {
-    const savedData = localStorage.getItem('mapaBar_vFinal');
+    const savedData = localStorage.getItem('mapaBar_vFinal_v2');
     if (savedData) {
         plano.innerHTML = savedData;
         document.querySelectorAll('.mesa').forEach(configurarMesa);
@@ -19,12 +19,8 @@ window.onload = function() {
 
 function cambiarModo(val) {
     modoActual = val;
-    const fb = document.getElementById('feedback');
     document.getElementById('herramientas-edicion').style.display = (val === 'operacion') ? 'none' : 'block';
-
-    if(val === 'operacion') fb.innerText = "🛡️ MODO OPERACIÓN";
-    if(val === 'edit-zonas') fb.innerText = "🏗️ PASO 1: CREAR ÁREAS";
-    if(val === 'edit-mesas') fb.innerText = "🪑 PASO 2: TOCA ÁREA PARA RELLENAR / TOCA MESA PARA EDITAR";
+    document.getElementById('btn-nueva-zona').style.display = (val === 'edit-zonas') ? 'inline-block' : 'none';
 
     document.querySelectorAll('.mesa').forEach(m => {
         const isEditing = (val === 'edit-mesas');
@@ -41,23 +37,40 @@ function cambiarModo(val) {
     });
 }
 
+function agregarZona() {
+    const nom = prompt("Nombre del área (ej: Terraza):");
+    if (!nom) return;
+    const z = document.createElement('div');
+    z.className = 'zona editando';
+    z.style.width = "300px"; z.style.height = "300px";
+    z.style.left = (Math.abs(panX) + 50) / escala + "px";
+    z.style.top = (Math.abs(panY) + 50) / escala + "px";
+    z.innerHTML = `<span>${nom}</span>`;
+    configurarZona(z);
+    plano.appendChild(z);
+    historial.push(z);
+    guardarDisposicion();
+}
+
 function configurarZona(z) {
     z.onclick = function() {
         if (modoActual !== 'edit-mesas') return;
-        const cantidad = prompt(`¿Cuántas mesas para este salón?`, "10");
-        if (!cantidad || isNaN(cantidad)) return;
-
+        const cant = prompt("¿Cuántas mesas para esta área?", "6");
+        if (!cant || isNaN(cant)) return;
+        
         const margen = 20;
         let col = 0, fila = 0;
-        const zW = parseFloat(z.style.width), mW = parseFloat(anchoMesaPreferido), mH = parseFloat(altoMesaPreferido);
-
-        for (let i = 0; i < cantidad; i++) {
+        for (let i = 0; i < cant; i++) {
             const m = document.createElement('div');
             m.className = 'mesa disponible editando';
             m.style.width = anchoMesaPreferido; m.style.height = altoMesaPreferido;
-            let posX = margen + (col * (mW + margen));
-            let posY = 40 + (fila * (mH + margen));
-            if (posX + mW > zW - margen) { col = 0; fila++; posX = margen; posY = 40 + (fila * (mH + margen)); }
+            let posX = margen + (col * (parseFloat(anchoMesaPreferido) + margen));
+            let posY = 40 + (fila * (parseFloat(altoMesaPreferido) + margen));
+            
+            if (posX + parseFloat(anchoMesaPreferido) > parseFloat(z.style.width) - margen) {
+                col = 0; fila++;
+                posX = margen; posY = 40 + (fila * (parseFloat(altoMesaPreferido) + margen));
+            }
             m.style.left = posX + "px"; m.style.top = posY + "px";
             m.dataset.capacidad = "4"; m.dataset.inicio = "0";
             m.innerHTML = `<strong>#${i+1}</strong><span>4p</span><div class="cronometro" style="display:none">00:00</div>`;
@@ -67,7 +80,6 @@ function configurarZona(z) {
         }
         guardarDisposicion();
     };
-
     interact(z).draggable({
         listeners: { move(e) {
             z.style.left = (parseFloat(z.style.left) || 0) + e.dx/escala + "px";
@@ -82,79 +94,51 @@ function configurarZona(z) {
     });
 }
 
-function configurarMesa(mesa) {
-    mesa.onclick = function(e) {
+function configurarMesa(m) {
+    m.onclick = function(e) {
         e.stopPropagation();
         if (modoActual === 'edit-mesas') {
-            const nNombre = prompt("Número/Nombre:", mesa.querySelector('strong').innerText.replace('#',''));
-            const nCap = prompt("Capacidad:", mesa.dataset.capacidad);
-            if (nNombre) mesa.querySelector('strong').innerText = "#" + nNombre;
-            if (nCap) { mesa.dataset.capacidad = nCap; mesa.querySelector('span').innerText = nCap + "p"; }
+            const nCap = prompt("¿Capacidad?", m.dataset.capacidad);
+            if (nCap) { m.dataset.capacidad = nCap; m.querySelector('span').innerText = nCap + "p"; }
             guardarDisposicion();
             return;
         }
         if (modoActual === 'operacion') {
-            if (mesa.classList.contains('disponible')) {
-                const r = prompt("¿Comensales?", mesa.dataset.capacidad);
+            if (m.classList.contains('disponible')) {
+                const r = prompt("¿Comensales?", m.dataset.capacidad);
                 if (r) {
-                    mesa.classList.replace('disponible', 'ocupada');
-                    mesa.dataset.inicio = Date.now();
-                    mesa.querySelector('.cronometro').style.display = "block";
-                    if(sonido) { sonido.currentTime = 0; sonido.play().catch(()=>{}); }
+                    m.classList.replace('disponible', 'ocupada');
+                    m.dataset.inicio = Date.now();
+                    m.querySelector('.cronometro').style.display = "block";
+                    sonido.play().catch(()=>{});
                 }
-            } else if (confirm("¿Liberar mesa?")) {
-                mesa.classList.remove('ocupada', 'alerta-tiempo');
-                mesa.classList.add('disponible');
-                mesa.dataset.inicio = "0";
-                mesa.querySelector('.cronometro').style.display = "none";
+            } else if (confirm("¿Liberar?")) {
+                m.classList.remove('ocupada', 'alerta-tiempo');
+                m.classList.add('disponible');
+                m.dataset.inicio = "0";
+                m.querySelector('.cronometro').style.display = "none";
             }
             guardarDisposicion();
         }
     };
-
-    interact(mesa).draggable({
+    interact(m).draggable({
         listeners: { move(e) {
             if (modoActual !== 'edit-mesas') return;
-            mesa.style.left = (parseFloat(mesa.style.left) || 0) + e.dx/escala + "px";
-            mesa.style.top = (parseFloat(mesa.style.top) || 0) + e.dy/escala + "px";
-        }, end() { guardarDisposicion(); }}
-    }).resizable({
-        edges: { right: true, bottom: true },
-        listeners: { move(e) {
-            if (modoActual !== 'edit-mesas') return;
-            mesa.style.width = e.rect.width / escala + 'px';
-            mesa.style.height = e.rect.height / escala + 'px';
-            anchoMesaPreferido = mesa.style.width; altoMesaPreferido = mesa.style.height;
+            m.style.left = (parseFloat(m.style.left) || 0) + e.dx/escala + "px";
+            m.style.top = (parseFloat(m.style.top) || 0) + e.dy/escala + "px";
         }, end() { guardarDisposicion(); }}
     });
 }
 
-function agregarZona() {
-    const nom = prompt("Nombre del área:");
-    if (nom) {
-        const z = document.createElement('div');
-        z.className = 'zona editando';
-        z.style.width = "400px"; z.style.height = "400px";
-        z.style.left = (window.innerWidth/2 - panX)/escala - 150 + "px";
-        z.style.top = (window.innerHeight/2 - panY)/escala - 150 + "px";
-        z.innerHTML = `<span>${nom}</span>`;
-        configurarZona(z);
-        plano.appendChild(z);
-        historial.push(z);
-        guardarDisposicion();
-    }
-}
+function guardarDisposicion() { localStorage.setItem('mapaBar_vFinal_v2', plano.innerHTML); }
+function deshacer() { if (historial.length > 0) { historial.pop().remove(); guardarDisposicion(); } }
+function resetZoom() { panX = 0; panY = 0; escala = 0.8; actualizarVista(); }
+function actualizarVista() { plano.style.transform = `translate(${panX}px, ${panY}px) scale(${escala})`; }
 
-// NAVEGACIÓN PRO
 interact('#viewport').gesturable({
     onmove: function (e) {
-        const factor = 0.5;
-        const nEscala = escala * (1 + e.ds * factor);
-        if (nEscala > 0.15 && nEscala < 4) {
-            panX -= (e.clientX0 - panX) * (nEscala / escala - 1);
-            panY -= (e.clientY0 - panY) * (nEscala / escala - 1);
-            escala = nEscala; actualizarVista();
-        }
+        escala *= (1 + e.ds);
+        actualizarVista();
     }
 }).draggable({
     listeners: { move(e) {
@@ -164,23 +148,17 @@ interact('#viewport').gesturable({
     }}
 });
 
-function actualizarVista() { plano.style.transform = `translate(${panX}px, ${panY}px) scale(${escala})`; }
-function deshacer() { if (historial.length > 0) { historial.pop().remove(); guardarDisposicion(); } }
-function resetZoom() { panX = 20; panY = 20; escala = 0.7; actualizarVista(); }
-function guardarDisposicion() { localStorage.setItem('mapaBar_vFinal', plano.innerHTML); }
-
-// BACKUP
 function exportarMapa() {
-    const datos = localStorage.getItem('mapaBar_vFinal');
+    const datos = localStorage.getItem('mapaBar_vFinal_v2');
     const codigo = btoa(unescape(encodeURIComponent(datos)));
-    navigator.clipboard.writeText(codigo).then(() => alert("✅ Código de mapa copiado. Guárdalo en tus Notas."));
+    navigator.clipboard.writeText(codigo).then(() => alert("Copiado al portapapeles."));
 }
 
 function importarMapa() {
-    const codigo = prompt("Pega el código de tu mapa:");
+    const codigo = prompt("Pega el código:");
     if (codigo) {
         const deco = decodeURIComponent(escape(atob(codigo)));
-        localStorage.setItem('mapaBar_vFinal', deco);
+        localStorage.setItem('mapaBar_vFinal_v2', deco);
         location.reload();
     }
 }
