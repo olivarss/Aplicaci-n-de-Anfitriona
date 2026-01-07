@@ -12,23 +12,26 @@
         <div id="fila-superior">
             <select id="selectorModo" onchange="cambiarModo(this.value)">
                 <option value="operacion">🛡️ MODO ATENCIÓN</option>
-                <option value="edit-zonas">🏗️ PASO 1: ÁREAS</option>
-                <option value="edit-mesas">🪑 PASO 2: MESAS</option>
+                <option value="edit-mesas">🪑 MODO EDICIÓN (MESAS)</option>
             </select>
             <button onclick="resetZoom()">🏠</button>
-            <button onclick="guardarDisposicion()" style="background:#2980b9; color:white;">💾</button>
+            <button onclick="guardarTodo()" style="background:#2980b9; color:white;">💾 GUARDAR</button>
         </div>
         <div id="herramientas-edicion" style="display:none; margin-top:8px;">
-            <button onclick="agregarZona()">+ Área</button>
-            <button onclick="document.getElementById('inputImagen').click()" style="background:#e67e22; color:white;">📸 Cargar Boceto</button>
-            <input type="file" id="inputImagen" style="display:none" accept="image/*" onchange="procesarBoceto(event)">
-            <button onclick="exportarMapa()">📤 Exportar</button>
-            <button onclick="importarMapa()">📥 Importar</button>
+            <button onclick="agregarMesa()">+ Nueva Mesa</button>
+            <button onclick="document.getElementById('inputFondo').click()" style="background:#e67e22; color:white;">🖼️ Cargar Plano</button>
+            <input type="file" id="inputFondo" style="display:none" accept="image/*" onchange="cargarImagenFondo(event)">
+            <button onclick="borrarTodo()" style="background:#c0392b; color:white;">🗑️ Reset</button>
         </div>
     </div>
+
     <div id="viewport">
-        <div id="plano-bar"></div>
+        <div id="plano-bar">
+            <img id="img-fondo" src="" style="display:none; position:absolute; top:0; left:0; pointer-events:none;">
+            <div id="contenedor-mesas"></div>
+        </div>
     </div>
+
     <audio id="sonidoPop" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
     <script src="script.js"></script>
 </body>
