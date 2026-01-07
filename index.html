@@ -9,18 +9,23 @@
 </head>
 <body>
     <div id="controles">
-        <select id="selectorModo" onchange="cambiarModo(this.value)">
-            <option value="operacion">🛡️ MODO OPERACIÓN</option>
-            <option value="edit-zonas">🏗️ PASO 1: CREAR ÁREAS</option>
-            <option value="edit-mesas">🪑 PASO 2: RELLENAR MESAS</option>
-        </select>
-        <div id="herramientas">
-            <button onclick="agregarZona()" id="btn-zona" style="display:none">+ Nueva Área</button>
+        <div id="menu-superior">
+            <select id="selectorModo" onchange="cambiarModo(this.value)">
+                <option value="operacion">🛡️ MODO OPERACIÓN</option>
+                <option value="edit-zonas">🏗️ PASO 1: ÁREAS</option>
+                <option value="edit-mesas">🪑 PASO 2: MESAS</option>
+            </select>
             <button onclick="deshacer()">↩️</button>
             <button onclick="resetZoom()">🏠</button>
-            <button onclick="guardarDisposicion()" style="background:#2980b9; color:white;">💾 GUARDAR</button>
+            <button onclick="guardarDisposicion()" style="background:#2980b9; color:white;">💾</button>
         </div>
-        <p id="feedback" style="font-size: 11px; color: #d35400; font-weight: bold; margin-top:5px;"></p>
+        
+        <div id="herramientas-edicion" style="display:none; margin-top:8px;">
+            <button onclick="agregarZona()" id="btn-zona" class="btn-accion">+ Nueva Área</button>
+            <button onclick="exportarMapa()" class="btn-backup">📤 Exportar</button>
+            <button onclick="importarMapa()" class="btn-backup">📥 Importar</button>
+        </div>
+        <p id="feedback" style="font-size: 10px; color: #d35400; margin: 5px 0 0; font-weight: bold;"></p>
     </div>
 
     <div id="viewport">
