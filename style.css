@@ -1,47 +1,32 @@
-body {
-    font-family: sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-    overflow: hidden; /* Evita que la pantalla rebote */
-}
-
-#controles {
-    padding: 10px;
-    background: white;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    text-align: center;
-    position: relative;
-    z-index: 10;
-}
-
-#plano-bar {
-    width: 100vw;
-    height: 80vh;
-    background-color: #ddd;
-    position: relative;
-    background-image: radial-gradient(#bbb 1px, transparent 1px);
-    background-size: 20px 20px; /* Cuadrícula de guía */
-}
+body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #1a1a1a; overflow: hidden; touch-action: none; }
+#controles { padding: 12px; background: white; text-align: center; z-index: 100; position: relative; border-bottom: 2px solid #ccc; }
+#viewport { width: 100vw; height: 90vh; overflow: hidden; background-color: #2c3e50; }
+#plano-bar { width: 5000px; height: 5000px; background-color: #ecf0f1; position: relative; transform-origin: 0 0; background-image: radial-gradient(#bdc3c7 1px, transparent 1px); background-size: 30px 30px; }
 
 .mesa {
-    position: absolute;
-    width: 75px;
-    height: 75px;
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    touch-action: none; /* Vital para que el arrastre funcione */
-    user-select: none;
+    position: absolute; width: 60px; height: 60px; border-radius: 10px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: white; font-size: 10px; font-weight: bold; box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+    z-index: 20; cursor: pointer;
 }
 
-.disponible { background-color: #2ecc71; border: 2px solid #27ae60; }
-.ocupada { background-color: #e74c3c; border: 2px solid #c0392b; }
+.zona {
+    position: absolute; width: 400px; height: 400px;
+    background-color: rgba(255, 255, 255, 0.6);
+    border: 2px dashed #7f8c8d; border-radius: 15px; 
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 10px; color: #2c3e50; font-weight: 900; z-index: 5;
+    text-transform: uppercase; font-size: 16px;
+}
 
-.btn-crear { padding: 10px; background: #2ecc71; border: none; border-radius: 5px; color: white; }
-.btn-guardar { padding: 10px; background: #3498db; border: none; border-radius: 5px; color: white; }
+.disponible { background-color: #27ae60; border: 2px solid #1e8449; }
+.ocupada { background-color: #c0392b; border: 2px solid #922b21; }
+.alerta-tiempo { background-color: #d35400 !important; border: 2px solid #a04000 !important; animation: parpadeo 2s infinite; }
+
+@keyframes parpadeo { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+.cronometro { font-size: 11px; background: rgba(0,0,0,0.3); padding: 1px 4px; border-radius: 3px; margin-top: 2px; }
+.btn-crear { background: #27ae60; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; }
+.btn-zona { background: #7f8c8d; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; }
+.btn-guardar { background: #2980b9; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; }
+.opciones-vista { margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
