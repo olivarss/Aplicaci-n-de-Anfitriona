@@ -9,19 +9,21 @@
 </head>
 <body>
     <div id="controles">
-        <select id="selectorModo" onchange="cambiarModo(this.value)">
-            <option value="operacion">🛡️ MODO OPERACIÓN</option>
-            <option value="edit-zonas">🏗️ PASO 1: ÁREAS</option>
-            <option value="edit-mesas">🪑 PASO 2: MESAS</option>
-        </select>
-        
-        <div id="herramientas">
-            <button onclick="agregarZona()" id="btn-zona" style="display:none">+ Área</button>
-            <button onclick="agregarMesa()" id="btn-mesa" style="display:none">+ Mesa</button>
+        <div id="menu-superior">
+            <select id="selectorModo" onchange="cambiarModo(this.value)">
+                <option value="operacion">🛡️ MODO OPERACIÓN</option>
+                <option value="edit-zonas">🏗️ PASO 1: ÁREAS</option>
+                <option value="edit-mesas">🪑 PASO 2: MESAS</option>
+            </select>
             <button onclick="deshacer()">↩️</button>
             <button onclick="resetZoom()">🏠</button>
             <button onclick="guardarDisposicion()" class="btn-guardar">💾 Guardar</button>
         </div>
+        <div id="herramientas-edicion" style="display:none; margin-top:10px;">
+            <button onclick="agregarZona()" id="btn-nueva-zona" class="btn-accion">+ Área</button>
+            <button onclick="agregarMesa()" id="btn-nueva-mesa" class="btn-accion">+ Mesa</button>
+        </div>
+        <p id="feedback" style="font-size: 11px; color: #666; margin: 5px 0 0;"></p>
     </div>
 
     <div id="viewport">
