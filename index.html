@@ -16,17 +16,18 @@
                 <option value="edit-mesas">🪑 PASO 2: MESAS</option>
             </select>
             <button onclick="resetZoom()">🏠</button>
-            <button onclick="deshacer()">↩️</button>
             <button onclick="guardarDisposicion()" style="background:#2980b9; color:white;">💾</button>
         </div>
         <div id="herramientas-edicion" style="display:none; margin-top:8px;">
-            <button onclick="agregarZona()">+ Nueva Área</button>
+            <button onclick="agregarZona()">+ Área</button>
+            <button onclick="document.getElementById('inputImagen').click()" style="background:#e67e22; color:white;">📸 Cargar Boceto</button>
+            <input type="file" id="inputImagen" style="display:none" accept="image/*" onchange="procesarBoceto(event)">
             <button onclick="exportarMapa()">📤 Exportar</button>
             <button onclick="importarMapa()">📥 Importar</button>
         </div>
     </div>
     <div id="viewport">
-        <div id="plano-bar" data-x="0" data-y="0"></div>
+        <div id="plano-bar"></div>
     </div>
     <audio id="sonidoPop" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
     <script src="script.js"></script>
