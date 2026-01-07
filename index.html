@@ -9,25 +9,23 @@
 </head>
 <body>
     <div id="controles">
-        <div id="menu-superior">
-            <select id="selectorModo" onchange="cambiarModo(this.value)">
-                <option value="operacion">🛡️ MODO OPERACIÓN</option>
-                <option value="edit-zonas">🏗️ PASO 1: ÁREAS</option>
-                <option value="edit-mesas">🪑 PASO 2: MESAS</option>
-            </select>
+        <select id="selectorModo" onchange="cambiarModo(this.value)">
+            <option value="operacion">🛡️ MODO OPERACIÓN</option>
+            <option value="edit-zonas">🏗️ PASO 1: ÁREAS</option>
+            <option value="edit-mesas">🪑 PASO 2: MESAS</option>
+        </select>
+        
+        <div id="herramientas">
+            <button onclick="agregarZona()" id="btn-zona" style="display:none">+ Área</button>
+            <button onclick="agregarMesa()" id="btn-mesa" style="display:none">+ Mesa</button>
             <button onclick="deshacer()">↩️</button>
             <button onclick="resetZoom()">🏠</button>
-            <button onclick="guardarDisposicion()" class="btn-guardar">💾 Guardar</button>
+            <button onclick="guardarDisposicion()" style="background:#2980b9; color:white;">💾 GUARDAR</button>
         </div>
-        <div id="herramientas-edicion" style="display:none; margin-top:10px;">
-            <button onclick="agregarZona()" id="btn-nueva-zona" class="btn-accion">+ Área</button>
-            <button onclick="agregarMesa()" id="btn-nueva-mesa" class="btn-accion">+ Mesa</button>
-        </div>
-        <p id="feedback" style="font-size: 11px; color: #666; margin: 5px 0 0;"></p>
     </div>
 
     <div id="viewport">
-        <div id="plano-bar" data-x="0" data-y="0"></div>
+        <div id="plano-bar" data-x="0" data-y="0" style="transform: translate(0px, 0px) scale(1);"></div>
     </div>
 
     <audio id="sonidoPop" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
