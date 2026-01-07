@@ -1,13 +1,13 @@
 let escala = 1, panX = 0, panY = 0;
 let modoActual = 'operacion';
 let historial = [];
-let anchoMesaPreferido = "60px", altoMesaPreferido = "60px";
+let anchoMesaPref = 60, altoMesaPref = 60;
 
 const plano = document.getElementById('plano-bar');
 const sonido = document.getElementById('sonidoPop');
 
 window.onload = function() {
-    const savedData = localStorage.getItem('mapaBar_FINAL_FIX');
+    const savedData = localStorage.getItem('mapaBar_FINAL_V101');
     if (savedData) {
         plano.innerHTML = savedData;
         document.querySelectorAll('.mesa').forEach(configurarMesa);
@@ -23,13 +23,13 @@ function cambiarModo(val) {
     
     document.querySelectorAll('.mesa').forEach(m => {
         m.classList.toggle('editando', val === 'edit-mesas');
-        interact(m).unset(); // Limpieza profunda
+        interact(m).unset();
         configurarMesa(m);
     });
 
     document.querySelectorAll('.zona').forEach(z => {
         z.classList.toggle('editando', val === 'edit-zonas');
-        z.style.pointerEvents = (val === 'edit-zonas' || val === 'edit-mesas') ? 'auto' : 'none';
+        z.style.pointerEvents = (val === 'operacion') ? 'none' : 'auto';
         interact(z).unset();
         configurarZona(z);
     });
@@ -51,24 +51,53 @@ function agregarZona() {
 }
 
 function configurarZona(z) {
-    // CLICK PARA RELLENAR MESAS (Solo en modo mesas)
-    z.addEventListener('click', function(e) {
-        if (modoActual !== 'edit-mesas' || e.target !== z) return;
-        const cant = prompt("¿Cuántas mesas?", "8");
-        if (!cant || isNaN(cant)) return;
+    z.onclick = function(e) {
+        if (modoActual !== 'edit-mesas') return;
+        e.stopPropagation();
         
+        const cant = prompt(`¿Cuántas mesas para ${z.innerText}?`, "6");
+        if (!cant || isNaN(cant)) return;
+
+        // --- CÁLCULO DE REJILLA CORREGIDO ---
+        const startX = parseFloat(z.style.left);
+        const startY = parseFloat(z.style.top);
+        const zW = parseFloat(z.style.width);
+        const margen = 15; // Espacio entre mesas
+        
+        let col = 0, fila = 0;
+
         for (let i = 0; i < cant; i++) {
             const m = document.createElement('div');
             m.className = 'mesa disponible editando';
-            m.style.width = anchoMesaPreferido; m.style.height = altoMesaPreferido;
-            m.style.left = "20px"; m.style.top = "50px"; // Posición base inicial
-            m.dataset.capacidad = "4"; m.dataset.inicio = "0";
+            m.style.width = anchoMesaPref + "px"; 
+            m.style.height = altoMesaPref + "px";
+            
+            // Calculamos la posición relativa al área
+            let posXRelativa = margen + (col * (anchoMesaPref + margen));
+            let posYRelativa = 45 + (fila * (altoMesaPref + margen));
+
+            // Si la mesa se sale del ancho del área, saltamos a la siguiente fila
+            if (posXRelativa + anchoMesaPref > zW - margen) {
+                col = 0;
+                fila++;
+                posXRelativa = margen;
+                posYRelativa = 45 + (fila * (altoMesaPref + margen));
+            }
+
+            // Posición final en el plano
+            m.style.left = (startX + posXRelativa) + "px";
+            m.style.top = (startY + posYRelativa) + "px";
+            
+            m.dataset.capacidad = "4"; 
+            m.dataset.inicio = "0";
             m.innerHTML = `<strong>#${i+1}</strong><span>4p</span><div class="cronometro" style="display:none">00:00</div>`;
+            
             configurarMesa(m);
-            z.appendChild(m);
+            plano.appendChild(m);
+            col++;
         }
         guardarDisposicion();
-    });
+    };
 
     interact(z).draggable({
         enabled: modoActual === 'edit-zonas',
@@ -87,14 +116,11 @@ function configurarZona(z) {
 }
 
 function configurarMesa(m) {
-    // EVENTO DE TOQUE REFORZADO PARA MÓVILES
-    m.onpointerdown = function(e) { e.stopPropagation(); };
+    // Evento táctil prioritario
     m.onpointerup = function(e) {
-        e.preventDefault();
         e.stopPropagation();
-
         if (modoActual === 'edit-mesas') {
-            const nNombre = prompt("Número/Nombre:", m.querySelector('strong').innerText.replace('#',''));
+            const nNombre = prompt("Nombre/Nº:", m.querySelector('strong').innerText.replace('#',''));
             const nCap = prompt("Capacidad:", m.dataset.capacidad);
             if (nNombre !== null) m.querySelector('strong').innerText = "#" + nNombre;
             if (nCap !== null) { m.dataset.capacidad = nCap; m.querySelector('span').innerText = nCap + "p"; }
@@ -106,7 +132,7 @@ function configurarMesa(m) {
                     m.classList.replace('disponible', 'ocupada');
                     m.dataset.inicio = Date.now();
                     m.querySelector('.cronometro').style.display = "block";
-                    sonido.play().catch(()=>{});
+                    if(sonido) sonido.play().catch(()=>{});
                 }
             } else if (confirm("¿Liberar mesa?")) {
                 m.classList.remove('ocupada', 'alerta-tiempo');
@@ -130,17 +156,17 @@ function configurarMesa(m) {
         listeners: { move(e) {
             m.style.width = e.rect.width / escala + 'px';
             m.style.height = e.rect.height / escala + 'px';
-            anchoMesaPreferido = m.style.width; altoMesaPreferido = m.style.height;
+            anchoMesaPref = parseFloat(m.style.width);
+            altoMesaPref = parseFloat(m.style.height);
         }, end() { guardarDisposicion(); }}
     });
 }
 
-function actualizarVista() { plano.style.transform = `translate(${panX}px, ${panY}px) scale(${escala})`; }
+function guardarDisposicion() { localStorage.setItem('mapaBar_FINAL_V101', plano.innerHTML); }
+function deshacer() { if (plano.lastChild) { plano.removeChild(plano.lastChild); guardarDisposicion(); } }
 function resetZoom() { panX = 10; panY = 10; escala = 0.8; actualizarVista(); }
-function guardarDisposicion() { localStorage.setItem('mapaBar_FINAL_FIX', plano.innerHTML); }
-function deshacer() { if (historial.length > 0) { historial.pop().remove(); guardarDisposicion(); } }
+function actualizarVista() { plano.style.transform = `translate(${panX}px, ${panY}px) scale(${escala})`; }
 
-// NAVEGACIÓN MAPA
 interact('#viewport').gesturable({
     onmove: function (e) {
         escala *= (1 + e.ds);
@@ -148,16 +174,14 @@ interact('#viewport').gesturable({
     }
 }).draggable({
     listeners: { move(e) {
-        if (modoActual !== 'operacion') {
-            if (e.target.classList.contains('mesa') || e.target.classList.contains('zona')) return;
-        }
+        if (modoActual !== 'operacion' && (e.target.classList.contains('mesa') || e.target.classList.contains('zona'))) return;
         panX += e.dx; panY += e.dy;
         actualizarVista();
     }}
 });
 
 function exportarMapa() {
-    const datos = localStorage.getItem('mapaBar_FINAL_FIX');
+    const datos = localStorage.getItem('mapaBar_FINAL_V101');
     const codigo = btoa(unescape(encodeURIComponent(datos)));
     prompt("Copia este código:", codigo);
 }
@@ -166,7 +190,7 @@ function importarMapa() {
     const codigo = prompt("Pega el código:");
     if (codigo) {
         const deco = decodeURIComponent(escape(atob(codigo)));
-        localStorage.setItem('mapaBar_FINAL_FIX', deco);
+        localStorage.setItem('mapaBar_FINAL_V101', deco);
         location.reload();
     }
 }
