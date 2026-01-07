@@ -1,8 +1,8 @@
-body { font-family: sans-serif; margin: 0; background-color: #000; overflow: hidden; touch-action: none; }
-#controles { padding: 10px; background: #fff; text-align: center; z-index: 1000; position: relative; border-bottom: 2px solid #444; }
+body { font-family: sans-serif; margin: 0; background-color: #111; overflow: hidden; touch-action: none; }
+#controles { padding: 10px; background: #fff; text-align: center; z-index: 1000; position: relative; border-bottom: 2px solid #444; height: 10vh; box-sizing: border-box;}
 #fila-superior { display: flex; justify-content: center; gap: 5px; }
-#viewport { width: 100vw; height: 90vh; overflow: hidden; background-color: #1a1a1a; position: relative; }
-#plano-bar { width: 5000px; height: 5000px; position: absolute; transform-origin: 0 0; }
+#viewport { width: 100vw; height: 90vh; overflow: hidden; position: relative; cursor: grab; }
+#plano-bar { position: absolute; transform-origin: 0 0; }
 
 .mesa {
     position: absolute; width: 60px; height: 60px; background-color: #27ae60;
@@ -14,6 +14,5 @@ body { font-family: sans-serif; margin: 0; background-color: #000; overflow: hid
 .editando { border: 2px solid #3498db !important; box-shadow: 0 0 15px #3498db; }
 .ocupada { background-color: #c0392b !important; border-color: #922b21 !important; }
 
-.cronometro { font-size: 10px; background: rgba(0,0,0,0.6); padding: 2px 4px; border-radius: 3px; margin-top: 2px; }
+.cronometro { font-size: 10px; background: rgba(0,0,0,0.6); padding: 2px 4px; border-radius: 3px; margin-top: 2px; pointer-events: none; }
 button { padding: 8px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #ccc; cursor: pointer; }
-#selectorModo { padding: 8px; border-radius: 6px; font-weight: bold; }
