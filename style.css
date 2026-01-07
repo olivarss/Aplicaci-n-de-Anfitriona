@@ -8,7 +8,7 @@ body { font-family: sans-serif; margin: 0; background-color: #000; overflow: hid
     position: absolute; width: 60px; height: 60px; background-color: #27ae60;
     border-radius: 8px; display: flex; flex-direction: column; align-items: center; 
     justify-content: center; color: white; font-size: 10px; font-weight: bold; 
-    z-index: 100; border: 2px solid #1e8449; touch-action: none; pointer-events: auto;
+    z-index: 500; border: 2px solid #1e8449; touch-action: none; pointer-events: auto;
 }
 
 .zona {
